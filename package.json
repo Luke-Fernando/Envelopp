@@ -1,14 +1,21 @@
 {
   "name": "envelopp",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
+  "description": "Securely sync .env files via encrypted GitHub Gists",
+  "license": "MIT",
+  "author": "Luke Fernando",
   "type": "module",
-  "main": "index.js",
+  "bin": {
+    "envl": "./dist/bin/envl.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "tsx watch src/envl.ts",
-    "start": "tsx bin/envl.ts"
+    "test-local": "node ./dist/bin/envl.js"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.9",

@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { Command } from 'commander';
 import { authCommand } from '../src/commands/auth.js';
 import { pushCommand } from '../src/commands/push.js';
