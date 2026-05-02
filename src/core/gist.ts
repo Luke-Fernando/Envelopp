@@ -1,14 +1,14 @@
 import axios from 'axios';
-import { getConfig } from './config.js';
+import { getConfig, getTokenForProject } from './config.js';
 import type { Envelopp } from '../types.js';
 
 const BASE_URL = 'https://api.github.com/gists';
 
 export async function upsertGist(envelope: Envelopp, gistId?: string): Promise<string> {
-    const config = getConfig();
-    if (!config) throw new Error('Not authenticated. Run "envl auth" first.');
+    const token = getTokenForProject(gistId);
+    if (!token) throw new Error('Not authenticated. Run "envl auth" first.');
 
-    const headers = { Authorization: `token ${config.github_token}` };
+    const headers = { Authorization: `token ${token}` };
 
     const payload = {
         description: 'Envelopp: Sync via Gist',
@@ -30,10 +30,10 @@ export async function upsertGist(envelope: Envelopp, gistId?: string): Promise<s
 }
 
 export async function fetchGist(gistId: string): Promise<Envelopp> {
-    const config = getConfig();
-    if (!config) throw new Error('Not authenticated. Run "envl auth" first.');
+    const token = getTokenForProject(gistId);
+    if (!token) throw new Error('Not authenticated. Run "envl auth" first.');
 
-    const headers = { Authorization: `token ${config.github_token}` };
+    const headers = { Authorization: `token ${token}` };
 
     const response = await axios.get(`${BASE_URL}/${gistId}`, { headers });
     const file = response.data.files['envelopp.json'];

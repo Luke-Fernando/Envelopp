@@ -3,6 +3,7 @@ import inquirer from 'inquirer';
 import { open } from '../core/crypto.js';
 import { getProjectId, saveProjectId } from '../core/project.js';
 import { fetchGist } from '../core/gist.js';
+import { parseEnv, stringifyEnv } from '../core/parser.js';
 
 export async function pullCommand(id?: string) {
     const gistId = id || getProjectId();
@@ -27,11 +28,20 @@ export async function pullCommand(id?: string) {
         const envelope = await fetchGist(gistId);
 
         console.log('Unsealing content...');
-        const decrypted = open(envelope, password);
+        const incomingRaw = open(envelope, password);
+        const incomingData = parseEnv(incomingRaw);
 
-        fs.writeFileSync('.env', decrypted);
+        let finalData = incomingData;
+
+        if (fs.existsSync('.env')) {
+            const localRaw = fs.readFileSync('.env', 'utf-8');
+            const localData = parseEnv(localRaw);
+
+            finalData = { ...localData, ...incomingData };
+        }
+
+        fs.writeFileSync('.env', stringifyEnv(finalData));
         saveProjectId(gistId);
-
         console.log('Success! .env has been restored.');
     } catch (error: any) {
         if (error.message.includes('bad decrypt') || error.code === 'ERR_CRYPTO_PBKDF2_ITER_TOO_LOW') {

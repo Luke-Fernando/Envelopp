@@ -18,3 +18,14 @@ export function getConfig(): Config | null {
     const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
     return JSON.parse(data);
 }
+
+export function getTokenForProject(gistId?: string): string | undefined {
+    const config = getConfig();
+    if (!config) return undefined;
+
+    if (gistId && config.project_tokens[gistId]) {
+        return config.project_tokens[gistId];
+    }
+
+    return config.global_token;
+}

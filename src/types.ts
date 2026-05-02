@@ -1,5 +1,6 @@
-export type Config = {
-    github_token: string
+export interface Config {
+    global_token?: string;
+    project_tokens: Record<string, string>;
 }
 
 export interface Envelopp {
