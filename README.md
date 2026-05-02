@@ -2,13 +2,13 @@
 
 > Securely share and sync `.env` files across your team — encrypted locally, stored on GitHub Gists.
 
-Envelopp (`envl`) solves the age-old problem of sharing environment variables without resorting to insecure channels like Slack, email, or text messages. It encrypts your `.env` file locally using **AES-256** before uploading it to a GitHub Gist, meaning even if the Gist is exposed, the contents are completely useless without the password.
+Envelopp (`envl`) solves the age-old problem of sharing environment variables without resorting to insecure channels like Slack, email, or text messages. It encrypts your `.env` files locally using **AES-256** before uploading them to a GitHub Gist, meaning even if the Gist is exposed, the contents are completely useless without the password. Multiple `.env.*` files are supported under a single Gist ID, so your entire environment setup lives in one place.
 
 ----------
 
 ## How It Works
 
-1.  You encrypt your `.env` file locally with a password using AES-256 encryption.
+1.  You encrypt one or more `.env.*` files locally with a password using AES-256 encryption.
 2.  The encrypted payload is pushed to a GitHub Gist (owned by you or your team lead).
 3.  Teammates pull the Gist and decrypt it locally using the shared password.
 4.  A `.envl` file in your project root keeps track of the Gist ID so you never have to pass it around manually.
@@ -60,35 +60,63 @@ You can save the token in two ways:
 
 ## Usage
 
-### Pushing an `.env` File
+### Pushing `.env` Files
 
 ```bash
-envl push
+envl push [options]
 ```
 
-Encrypts your local `.env` file with your password and pushes it to GitHub Gists. Behavior depends on whether a `.envl` file already exists in your project:
-
--   **No `.envl` file** — Creates a new Gist and saves the returned Gist ID to a new `.envl` file in your project root.
--   **`.envl` file exists** — Reads the Gist ID from `.envl` and syncs the updated encrypted payload to that existing Gist.
-
+Encrypts and pushes `.env.*` files from your project root to a GitHub Gist. Envelopp supports pushing multiple files under a single Gist ID. Behavior depends on whether a `.envl` file already exists in your project:
+ 
+- **No `.envl` file** — Creates a new Gist and saves the returned Gist ID to a new `.envl` file in your project root.
+- **`.envl` file exists** — Reads the Gist ID from `.envl` and syncs the updated encrypted payload to that existing Gist.
+If no flags are provided, you'll be presented with an interactive checkbox prompt to select which files to push from those detected in your project root.
+ 
+**Options:**
+ 
+```
+Usage: envl push [options]
+Seal and sync local .env to GitHub
+ 
+Options:
+  -a, --all                 Seal all detected .env files
+  -i, --include <files...>  Specifically include files
+  -I, --ignore <files...>   Ignore specific files
+  -h, --help                display help for command
+```
+ 
 > **Note:** Your GitHub token must have write access to the target Gist. If the Gist belongs to a team lead, they must explicitly grant you collaborator access.
 
 ----------
 
-### Pulling an `.env` File
+### Pulling `.env` Files
 
 ```bash
-envl pull <gist-id>
+envl pull [options] [gist-id]
 ```
 
-Downloads and decrypts the `.env` file from the specified Gist. Once decrypted, pulled keys are merged on top of your existing local `.env` — any variables you have locally that aren't in the Gist are preserved.
-
-If your project already has a `.envl` file with a Gist ID, you can omit the argument entirely:
-
+Downloads and decrypts `.env.*` files from the specified Gist. Once decrypted, pulled keys are merged on top of your existing local files — any variables you have locally that aren't in the Gist are preserved.
+ 
+If your project already has a `.envl` file with a Gist ID, you can omit the `[gist-id]` argument entirely:
+ 
 ```bash
 envl pull
 ```
-
+ 
+If no flags are provided, you'll be presented with an interactive selection prompt to choose which files to sync from those available in the Gist.
+ 
+**Options:**
+ 
+```
+Usage: envl pull [options] [id]
+Fetch and unseal .env from GitHub
+ 
+Options:
+  -a, --all                 Pull all files from the Gist
+  -i, --include <files...>  Pull specific files by name
+  -h, --help                display help for command
+```
+ 
 > **Note:** Pulling does not require write access to the Gist — a token with read (`gist`) scope is sufficient. You only need the Gist ID and the password.
 
 ----------
@@ -146,11 +174,16 @@ If you add it to `.gitignore`, teammates will need the Gist ID passed to them se
 ## Command Reference
 
 
-| Command               | Description                                 |
-| --------------------- | ------------------------------------------- |
-| `envl auth`           | Authenticate with a GitHub token            |
-| `envl push`           | Encrypt and push the local `.env` to a Gist |
-| `envl pull [gist-id]` | Pull and decrypt an `.env` from a Gist      |
+| Command                          | Description                                                                 |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| `envl auth`                      | Authenticate with a GitHub token                                            |
+| `envl push`                      | Encrypt and push `.env.*` files to a Gist (interactive if no flags given)   |
+| `envl push --all`                | Push all detected `.env.*` files                                            |
+| `envl push --include <files...>` | Push specific files                                                         |
+| `envl push --ignore <files...>`  | Push all detected files except the ones specified                           |
+| `envl pull [gist-id]`            | Pull and decrypt `.env.*` files from a Gist (interactive if no flags given) |
+| `envl pull --all`                | Pull all files from the Gist                                                |
+| `envl pull --include <files...>` | Pull specific files by name                                                 |
 
 
 ----------

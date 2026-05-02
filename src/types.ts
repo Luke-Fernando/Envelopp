@@ -10,3 +10,9 @@ export interface Envelopp {
     tag: string;
     data: string;
 }
+
+export interface PushOptions {
+    all?: boolean;
+    include?: string[];
+    ignore?: string[];
+}

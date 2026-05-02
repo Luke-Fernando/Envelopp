@@ -9,7 +9,7 @@ const program = new Command();
 program
     .name('envl')
     .description('Envelopp: Securely sync .env files via GitHub Gists')
-    .version('0.1.0');
+    .version('1.1.0');
 
 program
     .command('auth')
@@ -19,11 +19,16 @@ program
 program
     .command('push')
     .description('Seal and sync local .env to GitHub')
+    .option('-a, --all', 'Seal all detected .env files')
+    .option('-i, --include <files...>', 'Specifically include files')
+    .option('-I, --ignore <files...>', 'Ignore specific files')
     .action(pushCommand);
 
 program
     .command('pull [id]')
     .description('Fetch and unseal .env from GitHub')
+    .option('-a, --all', 'Pull all files from the Gist')
+    .option('-i, --include <files...>', 'Pull specific files by name')
     .action(pullCommand);
 
 program.parse(process.argv);

@@ -1,10 +1,13 @@
 import axios from 'axios';
-import { getConfig, getTokenForProject } from './config.js';
+import { getTokenForProject } from './config.js';
 import type { Envelopp } from '../types.js';
 
 const BASE_URL = 'https://api.github.com/gists';
 
-export async function upsertGist(envelope: Envelopp, gistId?: string): Promise<string> {
+export type GistPayload = Record<string, { content: string }>;
+export type EnveloppCollection = Record<string, Envelopp>;
+
+export async function upsertGist(files: GistPayload, gistId?: string): Promise<string> {
     const token = getTokenForProject(gistId);
     if (!token) throw new Error('Not authenticated. Run "envl auth" first.');
 
@@ -13,11 +16,7 @@ export async function upsertGist(envelope: Envelopp, gistId?: string): Promise<s
     const payload = {
         description: 'Envelopp: Sync via Gist',
         public: false,
-        files: {
-            'envelopp.json': {
-                content: JSON.stringify(envelope, null, 2)
-            }
-        }
+        files: files
     };
 
     if (gistId) {
@@ -29,16 +28,32 @@ export async function upsertGist(envelope: Envelopp, gistId?: string): Promise<s
     }
 }
 
-export async function fetchGist(gistId: string): Promise<Envelopp> {
+export async function fetchGist(gistId: string): Promise<EnveloppCollection> {
     const token = getTokenForProject(gistId);
     if (!token) throw new Error('Not authenticated. Run "envl auth" first.');
 
     const headers = { Authorization: `token ${token}` };
 
     const response = await axios.get(`${BASE_URL}/${gistId}`, { headers });
-    const file = response.data.files['envelopp.json'];
+    const files = response.data.files;
 
-    if (!file) throw new Error('This Gist does not contain an Envelopp seal.');
+    const envelopes: EnveloppCollection = {};
 
-    return JSON.parse(file.content) as Envelopp;
+    Object.keys(files).forEach(fileName => {
+        if (fileName.endsWith('.enc')) {
+            const originalName = fileName.replace('.enc', '');
+            try {
+                // Parse the string back into our Envelopp interface
+                envelopes[originalName] = JSON.parse(files[fileName].content) as Envelopp;
+            } catch (e) {
+                console.warn(`Could not parse envelope for ${fileName}. Skipping.`);
+            }
+        }
+    });
+
+    if (Object.keys(envelopes).length === 0) {
+        throw new Error('This Gist does not contain any Envelopp seals (.enc files).');
+    }
+
+    return envelopes;
 }
