@@ -119,6 +119,8 @@ Options:
  
 > **Note:** Pulling does not require write access to the Gist — a token with read (`gist`) scope is sufficient. You only need the Gist ID and the password.
 
+> ⚠️ **Warning:** Currently, Envelopp only preserves valid `KEY=VALUE` pairs. Anything else in your `.env` files — including comments, blank lines, and inline annotations — will be stripped out during processing.
+
 ----------
 
 ## Project File: `.envl`
